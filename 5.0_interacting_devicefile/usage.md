@@ -6,7 +6,7 @@ Insert and remove kernel module
 
 ```bash
 make
-sudo insmod dfile.ko
+sudo insmod inter_df.ko
 ls -l /dev | grep "rootv_device"
 sudo dmesg | tail -10
 sudo chmod 777 /dev/rootv_device
@@ -21,7 +21,7 @@ make -f Makefile1
 ## Remove
 
 ```bash
-sudo rmmod dfile
+sudo rmmod inter_df
 sudo dmesg | tail -10
 make clean
 make clean -f Makefile1
