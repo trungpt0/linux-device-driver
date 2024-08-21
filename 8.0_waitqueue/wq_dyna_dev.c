@@ -16,18 +16,17 @@ int count = 0;
 
 static int thread_handle(void *data)
 {
-    while (1)
+    while (!kthread_should_stop())
     {
-        pr_info("thread waiting for an event...\n");
+        pr_info("thread: waiting for an event...\n");
         wait_event_interruptible(waitqueue_dev, flag != 0);
         if (flag == 2) {
-            pr_info("event from exit function\n");
+            pr_info("thread: event from exit function\n");
             return 0;
         }
-        pr_info("event from read function %d\n", ++count);
+        pr_info("thread: event from read function count = %d\n", ++count);
         flag = 0;
     }
-    do_exit(0);
     return 0;
 }
 
@@ -99,12 +98,13 @@ static int __init waitqueue_init(void)
         goto dev_err;
     }
 
-    thread1 = kthread_create(thread_handle, NULL, "wait_thread");
-    if (thread1) {
-        pr_info("thread - create ok\n");
-        wake_up_process(thread1);
-    } else {
-        pr_info("thread - fail ok\n");
+    // Initialize and start the kernel thread
+    init_waitqueue_head(&waitqueue_dev);
+    thread1 = kthread_run(thread_handle, NULL, "wait_thread");
+    if (IS_ERR(thread1)) {
+        pr_err("Failed to create kernel thread\n");
+        ret = PTR_ERR(thread1);
+        goto dev_err;
     }
 
     pr_info("Kernel Module Inserted Successfully!\n");
